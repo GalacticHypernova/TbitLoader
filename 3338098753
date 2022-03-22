@@ -1,0 +1,225 @@
+local services=repl.Packages.Knit.Services
+getgenv().achieve=false
+getgenv().best=false
+getgenv().craft=false
+daily=false
+plyr.Idled:connect(function()
+vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+wait(1)
+vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
+local upArr={"Spawn"}
+local a=require(repl.ClientModules.Controllers.AfterLoad.ClickController)
+for i,v in next,work.Resources.PortalTargets.ToIslands:GetChildren() do
+table.insert(upArr,v.Name)
+end
+local library = loadstring(game:GetObjects("rbxassetid://7657867786")[1].Source)()
+local Wait = library.subs.Wait -- Only returns if the GUI has not been terminated. For 'while Wait() do' loops
+local PepsisWorld = library:CreateWindow({
+Name = "Tapper Simulator",
+Themeable = {
+Info = "Created by Hypernova#0721"
+}
+})
+local GeneralTab = PepsisWorld:CreateTab({
+Name = "General"
+})
+local FarmingSection = GeneralTab:CreateSection({
+Name = "Autofarm"
+})
+local Other = GeneralTab:CreateSection({
+Name = "Misc",
+Side="Right"
+})
+local info=GeneralTab:CreateSection({
+Name="Information",
+Side="Right"
+})
+local settings=PepsisWorld:CreateTab({
+Name="Config"
+})
+local pets=GeneralTab:CreateSection({
+Name="Pets"
+})
+local manage=settings:CreateSection({
+Name="Save & Load"
+})
+manage:AddPersistence({
+Name="Save file name",
+Suffix="settings"
+})
+FarmingSection:AddToggle({
+Name = "Auto Click",
+Callback=function(bool) getgenv().click=bool
+while a() and getgenv().click do
+a:Click()
+end
+end,
+Keybind =  {
+Mode="Dynamic"
+}
+})
+FarmingSection:AddSearchBox({
+Name="Auto rebirth option",
+List=function()
+local names={"Click Me"}
+for i,v in ipairs(plyr.PlayerGui.Rebirth.Background.Rebirths.RebirthHolder:GetChildren()) do
+if not table.find(names,v.Name) and v.ClassName=="Frame" then
+table.insert(names,v.Name)
+end
+end
+return names
+end,
+Callback=function(value)
+selectedRebirth=value
+end
+})
+FarmingSection:AddToggle({
+Name="Auto rebirth",
+Callback=function(bool)
+getgenv().rebirth=bool
+while a() and getgenv().rebirth do
+services.RebirthService.RF.Rebirth:InvokeServer(tonumber(selectedRebirth))
+end
+end
+})
+Other:AddToggle({
+Name="Auto unlock worlds",
+Callback=function(bool)
+getgenv().worlds=bool
+while getgenv().worlds and a(1) do
+for i,v in next,work.Resources.PortalTargets.ToIslands:GetChildren() do
+local args = {
+[1] = tostring(v.Name)
+}
+services.IslandService.RF.PurchaseIsland:InvokeServer(unpack(args))
+a(1)
+end
+end
+end
+})
+Other:AddSearchBox({
+Name="Island to teleport to (boost)",
+List=function()
+local names={"Click Me"}
+for i,v in ipairs(work.Resources.Portals.ToIslands:GetChildren()) do
+if not table.find(names,v.Name) and v.Name~="ComingSoon" and v.Name~="Graveyard" then
+table.insert(names,v.Name)
+end
+end
+return names
+end,
+Callback=function(value)
+selectedWorld=value
+end
+})
+Other:AddButton({
+Name="Teleport",
+Callback=function()
+if work:FindFirstChild("Resources") and work.Resources:FindFirstChild("PortalTargets") and work.Resources.PortalTargets:FindFirstChild("ToIslands") and work.Resources.PortalTargets.ToIslands:FindFirstChild(selectedWorld) and selectedWorld then
+plyr2.CFrame=work.Resources.PortalTargets.ToIslands[selectedWorld].CFrame
+end
+end
+})
+Other:AddButton({
+Name="Reduce Lag",
+Callback=function()
+plyr.PlayerGui.Hud:Destroy()
+services.SettingsService.RF.ToggleSetting:InvokeServer("General","Hide Your Pets")
+services.SettingsService.RF.ToggleSetting:InvokeServer("General","Hide Other Pets")
+services.SettingsService.RF.ToggleSetting:InvokeServer("General","Gem Effect")
+services.SettingsService.RF.ToggleSetting:InvokeServer("General","Particles")
+end
+})
+FarmingSection:AddToggle({
+Name="Auto upgrade",
+Callback=function(bool)
+getgenv().upgrade=bool
+while a(3) and getgenv().upgrade do
+for i=1,#upArr do
+services.UpgradeService.RF.Upgrade:InvokeServer(tostring(upArr[i]),"Rebirth Options")
+services.UpgradeService.RF.Upgrade:InvokeServer(tostring(upArr[i]),"More Gems")
+services.UpgradeService.RF.Upgrade:InvokeServer(tostring(upArr[i]),"Crit Chance")
+services.UpgradeService.RF.Upgrade:InvokeServer(tostring(upArr[i])"Pet Storage")
+services.UpgradeService.RF.Upgrade:InvokeServer(tostring(upArr[i]),"Run Speed")
+services.UpgradeService.RF.Upgrade:InvokeServer(tostring(upArr[i]),"Egg Open Speed")
+end
+end
+end
+})
+FarmingSection:AddToggle({
+Name="Auto claim achievements",
+Callback=function(bool)
+getgenv().achieve=bool
+while a(3) and getgenv().achieve do
+services.RewardService.RF.ClaimSpecificReward:InvokeServer("Clicks")
+a(1)
+services.RewardService.RF.ClaimSpecificReward:InvokeServer("Rebirth")
+a(1)
+services.RewardService.RF.ClaimSpecificReward:InvokeServer("Equip Pet")
+a(1)
+services.RewardService.RF.ClaimSpecificReward:InvokeServer("Islands")
+a(1)
+services.RewardService.RF.ClaimSpecificReward:InvokeServer("Eggs")
+a(1)
+services.RewardService.RF.ClaimSpecificReward:InvokeServer("Upgrades")
+end
+end
+})
+FarmingSection:AddToggle({
+Name="Auto collect daily chest",
+Callback=function(bool)
+getgenv().daily=bool
+while getgenv().daily do
+services.ChestService.RF.ClaimChest:InvokeServer("Daily Rewards")
+a(43200)
+end
+end
+})
+pets:AddSearchBox({
+Name="Egg to buy",
+List={"Click Me","Basic","Rare","Earth","Sand","Lava","Cosmic","Skyscraper","Trade","Ocean","Sweet"},
+Callback=function(value)
+selectedEgg=value
+end
+})
+pets:AddToggle({
+Name="Auto buy (x3)",
+Callback=function(bool)
+getgenv().egg=bool
+while a() and getgenv().egg do
+local args = {
+[1] = tostring(selectedEgg),
+[2] = 3
+}
+services.EggService.RF.PurchaseEgg:InvokeServer(unpack(args))
+end
+end
+})
+pets:AddToggle({
+Name="Auto equip best",
+Callback=function(bool)
+getgenv().best=bool
+while a(3) and getgenv().best do
+services.InventoryService.RF.EquipBest:InvokeServer()
+end
+end
+})
+info:AddLabel({
+Name="Created by Hypernova#0721"
+})
+info:AddLabel({
+Name="Discord server: MVZZUnzwKp"
+})
+info:AddButton({
+Name="Click to copy link",
+Callback=function()
+setclipboard("https://discord.gg/MVZZUnzwKp")
+StarterGui:SetCore("SendNotification", {
+Title = "Success!",
+Text = "The link was copied to your clipboard!",
+Duration = 5,
+Button1 = "Okay!",
+})
+end
+})
